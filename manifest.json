@@ -1,0 +1,27 @@
+{
+  "manifest_version": "2",
+  "api_version": "1",
+  "name": "Pinboard.in search extension",
+  "description": "Search your local Pinboard json bookmarks",
+  "developer_name": "Nicolas Meier",
+  "icon": "images/icon.png",
+  "options": {
+    "query_debounce": 0.1
+  },
+  "preferences": [
+    {
+      "id": "pinboard_kw",
+      "type": "keyword",
+      "name": "Invocation",
+      "description": "Type this keyword followed by space to activate search",
+      "default_value": "pb"
+    },
+    {
+      "id": "bookmarks_file",
+      "type": "input",
+      "name": "Pinboard bookmarks",
+      "description": "Pinboard json bookmarks file",
+      "default_value": ""
+    }
+  ]
+}
