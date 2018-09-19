@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from jq import jq
-import json
+import simplejson as json
 
 def search_json_bookmarks(search_value, path_to_pinboard_json):
     with open(path_to_pinboard_json) as json_file:

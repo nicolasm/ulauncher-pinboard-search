@@ -22,6 +22,22 @@
       "name": "Pinboard bookmarks",
       "description": "Pinboard json bookmarks file",
       "default_value": ""
+    },
+    {
+      "id": "aggregate",
+      "type": "select",
+      "name": "Aggregate results by hostname",
+      "default_value": "false",
+      "options":[
+        {"value":"true","text":"Yes"},
+        {"value":"false","text":"No"}
+      ]
+    },
+    {
+      "id": "limit",
+      "type": "input",
+      "name": "Results number",
+      "default_value": "10"
     }
   ]
 }
