@@ -1,21 +1,22 @@
 # -*- coding: utf-8 -*-
 
-from ulauncher.api.client.Extension import Extension
 from ulauncher.api.client.EventListener import EventListener
-from ulauncher.api.shared.event import KeywordQueryEvent, ItemEnterEvent
-from ulauncher.api.shared.item.ExtensionResultItem import ExtensionResultItem
-from ulauncher.api.shared.action.RenderResultListAction import RenderResultListAction
+from ulauncher.api.client.Extension import Extension
 from ulauncher.api.shared.action.HideWindowAction import HideWindowAction
+from ulauncher.api.shared.action.RenderResultListAction import RenderResultListAction
+from ulauncher.api.shared.event import KeywordQueryEvent, PreferencesEvent, PreferencesUpdateEvent
+from ulauncher.api.shared.item.ExtensionResultItem import ExtensionResultItem
+
 from search import search_json_bookmarks
-from search import Bookmark
+
 
 class PinboardSearchExtension(Extension):
 
     def __init__(self):
         super(PinboardSearchExtension, self).__init__()
-        self.aggregate = False
-        self.limit = 10
         self.subscribe(KeywordQueryEvent, KeywordQueryEventListener())
+        self.subscribe(PreferencesEvent, PreferencesEventListener())
+        self.subscribe(PreferencesUpdateEvent, PreferencesUpdateEventListener())
 
 json_bookmark_file = "/home/nicolas/Documents/Pinboard/Pinboard.json"
 
@@ -24,13 +25,9 @@ class KeywordQueryEventListener(EventListener):
     def on_event(self, event, extension):
         search_value = event.get_argument()
 
-        print(search_value)
-        print(json_bookmark_file)
-
         bookmarks = search_json_bookmarks(search_value, json_bookmark_file)
 
         hosts = []
-
         items = []
         if bookmarks:
             for bookmark in bookmarks[:extension.limit]:
@@ -55,12 +52,14 @@ class KeywordQueryEventListener(EventListener):
 
 class PreferencesEventListener(EventListener):
     def on_event(self,event,extension):
-        extension.aggregate = event.preferences['aggregate']
         try:
             n = int(event.preferences['limit'])
+            aggregate = event.preferences['aggregate']
         except:
             n = 10
+            aggregate = False
         extension.limit = n
+        extension.aggregate = (aggregate == "True")
 
 class PreferencesUpdateEventListener(EventListener):
     def on_event(self,event,extension):
@@ -71,7 +70,7 @@ class PreferencesUpdateEventListener(EventListener):
             except:
                 pass
         elif event.id == 'aggregate':
-            extension.aggregate = event.new_value
+            extension.aggregate = (event.new_value == "True")
 
 def getHostname(str):
     url = str.split('/')

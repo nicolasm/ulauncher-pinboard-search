@@ -17,20 +17,13 @@
       "default_value": "pb"
     },
     {
-      "id": "bookmarks_file",
-      "type": "input",
-      "name": "Pinboard bookmarks",
-      "description": "Pinboard json bookmarks file",
-      "default_value": ""
-    },
-    {
       "id": "aggregate",
       "type": "select",
       "name": "Aggregate results by hostname",
-      "default_value": "false",
+      "default_value": "False",
       "options":[
-        {"value":"true","text":"Yes"},
-        {"value":"false","text":"No"}
+        {"value":"True","text":"Yes"},
+        {"value":"False","text":"No"}
       ]
     },
     {
