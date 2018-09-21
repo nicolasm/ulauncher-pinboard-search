@@ -17,6 +17,18 @@
       "default_value": "pb"
     },
     {
+      "id": "pinboard_bookmark_file",
+      "type": "input",
+      "name": "Path to Pinboard.json file",
+      "default_value": "/tmp/Pinboard.json"
+    },
+    {
+      "id": "pinboard_api_token",
+      "type": "input",
+      "name": "Pinboard API token",
+      "default_value": "username:token"
+    },
+    {
       "id": "aggregate",
       "type": "select",
       "name": "Aggregate results by hostname",
