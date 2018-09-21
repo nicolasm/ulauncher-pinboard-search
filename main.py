@@ -12,6 +12,7 @@ from pinboard import start_async_pinboard_download
 
 class PinboardSearchExtension(Extension):
 
+
     def __init__(self):
         super(PinboardSearchExtension, self).__init__()
         self.subscribe(KeywordQueryEvent, KeywordQueryEventListener())
@@ -19,6 +20,7 @@ class PinboardSearchExtension(Extension):
         self.subscribe(PreferencesUpdateEvent, PreferencesUpdateEventListener())
 
 class KeywordQueryEventListener(EventListener):
+
 
     def on_event(self, event, extension):
         search_value = event.get_argument()
@@ -35,15 +37,15 @@ class KeywordQueryEventListener(EventListener):
                         hosts.append(hostname)
                 else:
                     items.append(ExtensionResultItem(icon='images/icon.png',
-                                                     name=bookmark.description.encode("utf8"),
-                                                     description=bookmark.description.encode("utf8"),
+                                                     name=bookmark.description.encode('utf8'),
+                                                     description=bookmark.description.encode('utf8'),
                                                      on_enter=HideWindowAction()))
 
         if extension.aggregate:
             for host in hosts[:extension.limit]:
                 items.append(ExtensionResultItem(icon='images/icon.png',
-                                                 name=get_name(host),
-                                                 description=host.encode("utf8"),
+                                                 name=get_name(host).encode('utf8'),
+                                                 description=host.encode('utf8'),
                                                  on_enter=HideWindowAction()))
 
         return RenderResultListAction(items)
@@ -62,13 +64,15 @@ class PreferencesEventListener(EventListener):
             pinboard_api_token = 'username:token'
 
         extension.limit = n
-        extension.aggregate = (aggregate == "true")
+        extension.aggregate = (aggregate == 'true')
         extension.json_bookmark_file = json_bookmark_file
         extension.pinboard_api_token = pinboard_api_token
 
         start_async_pinboard_download(extension.pinboard_api_token, extension.json_bookmark_file)
 
 class PreferencesUpdateEventListener(EventListener):
+
+
     def on_event(self,event,extension):
         if event.id == 'limit':
             try:
@@ -77,11 +81,12 @@ class PreferencesUpdateEventListener(EventListener):
             except:
                 pass
         elif event.id == 'aggregate':
-            extension.aggregate = (event.new_value == "true")
+            extension.aggregate = (event.new_value == 'true')
         elif event.id == 'pinboard_bookmark_file':
             extension.json_bookmark_file = event.new_value
         elif event.id == 'pinboard_api_token':
             extension.pinboard_api_token = event.new_value
+
 
 def get_hostname(str):
     url = str.split('/')
@@ -89,6 +94,7 @@ def get_hostname(str):
         return url[2]
     else:
         return 'Unknown'
+
 
 def get_name(hostname):
     dm = hostname.split('.')
