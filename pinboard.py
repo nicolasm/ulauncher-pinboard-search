@@ -27,4 +27,4 @@ def download_pinboard_bookmarks_to_file(token, path_to_file):
 
 
 def is_older_than_one_day(path_to_file):
-    return (time.time() - os.path.getmtime(path_to_file) > 60)
+    return (time.time() - os.path.getmtime(path_to_file) > 24 * 60 * 60)
