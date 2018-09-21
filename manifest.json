@@ -1,7 +1,7 @@
 {
   "manifest_version": "2",
   "api_version": "1",
-  "name": "Pinboard.in search extension",
+  "name": "Pinboard.in search",
   "description": "Search your local Pinboard json bookmarks",
   "developer_name": "Nicolas Meier",
   "icon": "images/icon.png",
@@ -20,10 +20,10 @@
       "id": "aggregate",
       "type": "select",
       "name": "Aggregate results by hostname",
-      "default_value": "False",
+      "default_value": "false",
       "options":[
-        {"value":"True","text":"Yes"},
-        {"value":"False","text":"No"}
+        {"value":"true","text":"Yes"},
+        {"value":"false","text":"No"}
       ]
     },
     {

@@ -42,7 +42,7 @@ class KeywordQueryEventListener(EventListener):
                                                      on_enter=HideWindowAction()))
 
         if extension.aggregate:
-            for host in hosts[:30]:
+            for host in hosts[:extension.limit]:
                 items.append(ExtensionResultItem(icon='images/icon.png',
                                                  name=getName(host),
                                                  description=host.encode("utf8"),
@@ -59,7 +59,7 @@ class PreferencesEventListener(EventListener):
             n = 10
             aggregate = False
         extension.limit = n
-        extension.aggregate = (aggregate == "True")
+        extension.aggregate = (aggregate == "true")
 
 class PreferencesUpdateEventListener(EventListener):
     def on_event(self,event,extension):
@@ -70,7 +70,7 @@ class PreferencesUpdateEventListener(EventListener):
             except:
                 pass
         elif event.id == 'aggregate':
-            extension.aggregate = (event.new_value == "True")
+            extension.aggregate = (event.new_value == "true")
 
 def getHostname(str):
     url = str.split('/')
