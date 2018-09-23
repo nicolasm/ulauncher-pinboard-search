@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
 
+import webbrowser
+
 from ulauncher.api.client.EventListener import EventListener
 from ulauncher.api.client.Extension import Extension
-from ulauncher.api.shared.action.HideWindowAction import HideWindowAction
+from ulauncher.api.shared.action.ExtensionCustomAction import ExtensionCustomAction
 from ulauncher.api.shared.action.RenderResultListAction import RenderResultListAction
-from ulauncher.api.shared.event import KeywordQueryEvent, PreferencesEvent, PreferencesUpdateEvent
+from ulauncher.api.shared.event import KeywordQueryEvent, PreferencesEvent, PreferencesUpdateEvent, ItemEnterEvent
 from ulauncher.api.shared.item.ExtensionResultItem import ExtensionResultItem
 
-from search import search_json_bookmarks
 from pinboard import start_async_pinboard_download
+from search import search_json_bookmarks
+
 
 class PinboardSearchExtension(Extension):
 
@@ -16,8 +19,10 @@ class PinboardSearchExtension(Extension):
     def __init__(self):
         super(PinboardSearchExtension, self).__init__()
         self.subscribe(KeywordQueryEvent, KeywordQueryEventListener())
+        self.subscribe(ItemEnterEvent, ItemEnterEventListener())
         self.subscribe(PreferencesEvent, PreferencesEventListener())
         self.subscribe(PreferencesUpdateEvent, PreferencesUpdateEventListener())
+
 
 class KeywordQueryEventListener(EventListener):
 
@@ -27,48 +32,87 @@ class KeywordQueryEventListener(EventListener):
 
         bookmarks = search_json_bookmarks(search_value, extension.json_bookmark_file)
 
-        hosts = []
         items = []
+
         if bookmarks:
-            for bookmark in bookmarks[:extension.limit]:
-                if extension.aggregate:
-                    hostname = get_hostname(bookmark.url)
-                    if (not hosts.__contains__(hostname)):
-                        hosts.append(hostname)
-                else:
-                    items.append(ExtensionResultItem(icon='images/icon.png',
-                                                     name=bookmark.description.encode('utf8'),
-                                                     description=bookmark.description.encode('utf8'),
-                                                     on_enter=HideWindowAction()))
-
-        if extension.aggregate:
-            for host in hosts[:extension.limit]:
-                items.append(ExtensionResultItem(icon='images/icon.png',
-                                                 name=get_name(host).encode('utf8'),
-                                                 description=host.encode('utf8'),
-                                                 on_enter=HideWindowAction()))
-
+            extension.bookmarks = bookmarks
+            items = build_result_items(extension, bookmarks, 0)
+            # for bookmark in bookmarks[:extension.limit]:
+            #     data = {'type': 'bookmark', 'url': bookmark.url, 'browser': extension.browser}
+            #     items.append(ExtensionResultItem(icon='images/icon.png',
+            #                                      name=bookmark.description.encode('utf8'),
+            #                                      description=bookmark.url,
+            #                                      on_enter=ExtensionCustomAction(data)))
+            #
+            # data = {'type': 'bookmarks', 'start': extension.limit}
+            # extension.bookmarks = bookmarks
+            # items.append(ExtensionResultItem(icon='images/next.png',
+            #                                  name='Next bookmarks',
+            #                                  on_enter=ExtensionCustomAction(data, keep_app_open=True)))
         return RenderResultListAction(items)
 
+
+class ItemEnterEventListener(EventListener):
+
+
+    def on_event(self, event, extension):
+        data = event.get_data()
+
+        if data['type'] == 'bookmark':
+            if data['browser'] == 'default':
+                webbrowser.open_new_tab(data['url'])
+            else:
+                webbrowser.get(data['browser']).open_new_tab(data['url'])
+        elif data['type'] == 'bookmarks':
+            print('second case')
+            start_index = data['start']
+            items = build_result_items(extension, extension.bookmarks, start_index)
+            return RenderResultListAction(items)
+
+def build_result_items(extension, bookmarks, start_index):
+    items = []
+
+    prev_data = {'type': 'bookmarks', 'start': start_index - extension.limit}
+    if start_index >= extension.limit:
+        items.append(ExtensionResultItem(icon='images/prev.png',
+                                         name='Previous bookmarks',
+                                         on_enter=ExtensionCustomAction(prev_data, keep_app_open=True)))
+
+    for bookmark in bookmarks[start_index:start_index + extension.limit]:
+        bookmark_data = {'type': 'bookmark', 'url': bookmark.url, 'browser': extension.browser}
+        items.append(ExtensionResultItem(icon='images/icon.png',
+                                         name=bookmark.description.encode('utf8'),
+                                         description=bookmark.url,
+                                         on_enter=ExtensionCustomAction(bookmark_data)))
+
+    next_data = {'type': 'bookmarks', 'start': start_index + extension.limit}
+    if start_index + extension.limit < bookmarks.__len__():
+        items.append(ExtensionResultItem(icon='images/next.png',
+                                         name='Next bookmarks',
+                                         on_enter=ExtensionCustomAction(next_data, keep_app_open=True)))
+    return items
+
+
 class PreferencesEventListener(EventListener):
+
+
     def on_event(self,event,extension):
         try:
             n = int(event.preferences['limit'])
-            aggregate = event.preferences['aggregate']
-            json_bookmark_file = event.preferences['pinboard_bookmark_file']
-            pinboard_api_token = event.preferences['pinboard_api_token']
         except:
             n = 10
-            aggregate = False
-            json_bookmark_file = '/tmp/Pinboard.json'
-            pinboard_api_token = 'username:token'
+
+        json_bookmark_file = event.preferences['pinboard_bookmark_file']
+        pinboard_api_token = event.preferences['pinboard_api_token']
+        browser = event.preferences['browser']
 
         extension.limit = n
-        extension.aggregate = (aggregate == 'true')
         extension.json_bookmark_file = json_bookmark_file
         extension.pinboard_api_token = pinboard_api_token
+        extension.browser = browser
 
         start_async_pinboard_download(extension.pinboard_api_token, extension.json_bookmark_file)
+
 
 class PreferencesUpdateEventListener(EventListener):
 
@@ -80,29 +124,12 @@ class PreferencesUpdateEventListener(EventListener):
                 extension.limit = n
             except:
                 pass
-        elif event.id == 'aggregate':
-            extension.aggregate = (event.new_value == 'true')
         elif event.id == 'pinboard_bookmark_file':
             extension.json_bookmark_file = event.new_value
         elif event.id == 'pinboard_api_token':
             extension.pinboard_api_token = event.new_value
-
-
-def get_hostname(str):
-    url = str.split('/')
-    if len(url) > 2:
-        return url[2]
-    else:
-        return 'Unknown'
-
-
-def get_name(hostname):
-    dm = hostname.split('.')
-    if dm[0]=='www':
-        i = 1
-    else:
-        i = 0
-    return ''.join(dm[i:len(dm)-1]).title()
+        elif event.id == 'browser':
+            extension.browser = event.new_value
 
 
 if __name__ == '__main__':

@@ -29,20 +29,22 @@
       "default_value": "username:token"
     },
     {
-      "id": "aggregate",
-      "type": "select",
-      "name": "Aggregate results by hostname",
-      "default_value": "false",
-      "options":[
-        {"value":"true","text":"Yes"},
-        {"value":"false","text":"No"}
-      ]
-    },
-    {
       "id": "limit",
       "type": "input",
       "name": "Results number",
       "default_value": "10"
+    },
+    {
+      "id": "browser",
+      "type": "select",
+      "name": "Open in browser",
+      "default_value": "default",
+      "options":[
+        {"value":"default","text":"Default"},
+        {"value":"firefox","text":"Firefox"},
+        {"value":"chrome","text":"Chrome"},
+        {"value":"chromium","text":"Chromium"}
+      ]
     }
   ]
 }
