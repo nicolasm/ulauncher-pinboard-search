@@ -18,10 +18,37 @@ class PinboardSearchExtension(Extension):
 
     def __init__(self):
         super(PinboardSearchExtension, self).__init__()
+        self.limit = 10
+        self.browser = 'default'
+
         self.subscribe(KeywordQueryEvent, KeywordQueryEventListener())
         self.subscribe(ItemEnterEvent, ItemEnterEventListener())
         self.subscribe(PreferencesEvent, PreferencesEventListener())
         self.subscribe(PreferencesUpdateEvent, PreferencesUpdateEventListener())
+
+
+    def build_result_items(self, bookmarks, start_index):
+        items = []
+
+        prev_data = {'type': 'bookmarks', 'start': start_index - self.limit}
+        if start_index >= self.limit:
+            items.append(ExtensionResultItem(icon='images/prev.png',
+                                             name='Previous bookmarks',
+                                             on_enter=ExtensionCustomAction(prev_data, keep_app_open=True)))
+
+        for bookmark in bookmarks[start_index:start_index + self.limit]:
+            bookmark_data = {'type': 'bookmark', 'url': bookmark.url, 'browser': self.browser}
+            items.append(ExtensionResultItem(icon='images/icon.png',
+                                             name=bookmark.description.encode('utf8'),
+                                             description=bookmark.url,
+                                             on_enter=ExtensionCustomAction(bookmark_data)))
+
+        next_data = {'type': 'bookmarks', 'start': start_index + self.limit}
+        if start_index + self.limit < bookmarks.__len__():
+            items.append(ExtensionResultItem(icon='images/next.png',
+                                             name='Next bookmarks',
+                                             on_enter=ExtensionCustomAction(next_data, keep_app_open=True)))
+        return items
 
 
 class KeywordQueryEventListener(EventListener):
@@ -29,6 +56,8 @@ class KeywordQueryEventListener(EventListener):
 
     def on_event(self, event, extension):
         search_value = event.get_argument()
+        if search_value == None:
+            search_value = ''
 
         bookmarks = search_json_bookmarks(search_value, extension.json_bookmark_file)
 
@@ -36,19 +65,8 @@ class KeywordQueryEventListener(EventListener):
 
         if bookmarks:
             extension.bookmarks = bookmarks
-            items = build_result_items(extension, bookmarks, 0)
-            # for bookmark in bookmarks[:extension.limit]:
-            #     data = {'type': 'bookmark', 'url': bookmark.url, 'browser': extension.browser}
-            #     items.append(ExtensionResultItem(icon='images/icon.png',
-            #                                      name=bookmark.description.encode('utf8'),
-            #                                      description=bookmark.url,
-            #                                      on_enter=ExtensionCustomAction(data)))
-            #
-            # data = {'type': 'bookmarks', 'start': extension.limit}
-            # extension.bookmarks = bookmarks
-            # items.append(ExtensionResultItem(icon='images/next.png',
-            #                                  name='Next bookmarks',
-            #                                  on_enter=ExtensionCustomAction(data, keep_app_open=True)))
+            items = extension.build_result_items(bookmarks, 0)
+
         return RenderResultListAction(items)
 
 
@@ -64,33 +82,9 @@ class ItemEnterEventListener(EventListener):
             else:
                 webbrowser.get(data['browser']).open_new_tab(data['url'])
         elif data['type'] == 'bookmarks':
-            print('second case')
             start_index = data['start']
-            items = build_result_items(extension, extension.bookmarks, start_index)
+            items = extension.build_result_items(extension.bookmarks, start_index)
             return RenderResultListAction(items)
-
-def build_result_items(extension, bookmarks, start_index):
-    items = []
-
-    prev_data = {'type': 'bookmarks', 'start': start_index - extension.limit}
-    if start_index >= extension.limit:
-        items.append(ExtensionResultItem(icon='images/prev.png',
-                                         name='Previous bookmarks',
-                                         on_enter=ExtensionCustomAction(prev_data, keep_app_open=True)))
-
-    for bookmark in bookmarks[start_index:start_index + extension.limit]:
-        bookmark_data = {'type': 'bookmark', 'url': bookmark.url, 'browser': extension.browser}
-        items.append(ExtensionResultItem(icon='images/icon.png',
-                                         name=bookmark.description.encode('utf8'),
-                                         description=bookmark.url,
-                                         on_enter=ExtensionCustomAction(bookmark_data)))
-
-    next_data = {'type': 'bookmarks', 'start': start_index + extension.limit}
-    if start_index + extension.limit < bookmarks.__len__():
-        items.append(ExtensionResultItem(icon='images/next.png',
-                                         name='Next bookmarks',
-                                         on_enter=ExtensionCustomAction(next_data, keep_app_open=True)))
-    return items
 
 
 class PreferencesEventListener(EventListener):
