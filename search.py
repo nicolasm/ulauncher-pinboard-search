@@ -25,6 +25,7 @@ def search_json_bookmarks(search_value, path_to_pinboard_json):
 
 
 class Bookmark:
+
     def __init__(self, description, url):
         self.description = description
         self.url = url

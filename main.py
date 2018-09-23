@@ -15,7 +15,6 @@ from search import search_json_bookmarks
 
 class PinboardSearchExtension(Extension):
 
-
     def __init__(self):
         super(PinboardSearchExtension, self).__init__()
         self.limit = 10
@@ -25,7 +24,6 @@ class PinboardSearchExtension(Extension):
         self.subscribe(ItemEnterEvent, ItemEnterEventListener())
         self.subscribe(PreferencesEvent, PreferencesEventListener())
         self.subscribe(PreferencesUpdateEvent, PreferencesUpdateEventListener())
-
 
     def build_result_items(self, bookmarks, start_index):
         items = []
@@ -53,7 +51,6 @@ class PinboardSearchExtension(Extension):
 
 class KeywordQueryEventListener(EventListener):
 
-
     def on_event(self, event, extension):
         search_value = event.get_argument()
         if search_value == None:
@@ -72,7 +69,6 @@ class KeywordQueryEventListener(EventListener):
 
 class ItemEnterEventListener(EventListener):
 
-
     def on_event(self, event, extension):
         data = event.get_data()
 
@@ -88,7 +84,6 @@ class ItemEnterEventListener(EventListener):
 
 
 class PreferencesEventListener(EventListener):
-
 
     def on_event(self,event,extension):
         try:
@@ -109,7 +104,6 @@ class PreferencesEventListener(EventListener):
 
 
 class PreferencesUpdateEventListener(EventListener):
-
 
     def on_event(self,event,extension):
         if event.id == 'limit':
