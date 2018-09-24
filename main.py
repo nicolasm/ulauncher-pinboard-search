@@ -9,6 +9,8 @@ from ulauncher.api.shared.action.RenderResultListAction import RenderResultListA
 from ulauncher.api.shared.event import KeywordQueryEvent, PreferencesEvent, PreferencesUpdateEvent, ItemEnterEvent
 from ulauncher.api.shared.item.ExtensionResultItem import ExtensionResultItem
 
+import os
+
 from pinboard import start_async_pinboard_download
 from search import search_json_bookmarks
 
@@ -114,8 +116,14 @@ class PreferencesUpdateEventListener(EventListener):
                 pass
         elif event.id == 'pinboard_bookmark_file':
             extension.json_bookmark_file = event.new_value
+            start_async_pinboard_download(extension.pinboard_api_token, extension.json_bookmark_file)
         elif event.id == 'pinboard_api_token':
             extension.pinboard_api_token = event.new_value
+
+            if os.path.isfile(extension.json_bookmark_file):
+                os.remove(extension.json_bookmark_file)
+
+            start_async_pinboard_download(extension.pinboard_api_token, extension.json_bookmark_file)
         elif event.id == 'browser':
             extension.browser = event.new_value
 
