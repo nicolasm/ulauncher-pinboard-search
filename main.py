@@ -30,7 +30,7 @@ class PinboardSearchExtension(Extension):
     def build_result_items(self, bookmarks, start_index):
         items = []
 
-        prev_data = {'type': 'bookmarks', 'start': start_index - self.limit}
+        prev_data = {'type': 'bookmarkhttps://duckduckgo.com/?q=mate+calc+linux&t=ffabs', 'start': start_index - self.limit}
         if start_index >= self.limit:
             items.append(ExtensionResultItem(icon='images/prev.png',
                                              name='Previous bookmarks',
@@ -75,6 +75,7 @@ class ItemEnterEventListener(EventListener):
         data = event.get_data()
 
         if data['type'] == 'bookmark':
+            extension.bookmarks = []
             if data['browser'] == 'default':
                 webbrowser.open_new_tab(data['url'])
             else:
