@@ -24,8 +24,8 @@ if the existing file is older than 24 hours.
 
 ## Requirements
 
-* jq
-* simplejson
+* jq --> sudo pip2 install jq
+* simplejson --> sudo pip2 install simplejson
 
 ## Install
 
