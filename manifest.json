@@ -10,11 +10,18 @@
   },
   "preferences": [
     {
-      "id": "pinboard_kw",
+      "id": "pb_kw",
       "type": "keyword",
       "name": "Invocation",
-      "description": "Type this keyword followed by space to activate search",
+      "description": "Type this keyword followed by space to activate bookmark search",
       "default_value": "pb"
+    },
+    {
+      "id": "pt_kw",
+      "type": "keyword",
+      "name": "Invocation",
+      "description": "Type this keyword followed by space to activate tag browsing",
+      "default_value": "pt"
     },
     {
       "id": "pinboard_bookmark_file",
@@ -27,6 +34,12 @@
       "type": "input",
       "name": "Pinboard API token",
       "default_value": "username:token"
+    },
+    {
+      "id": "pinboard_username",
+      "type": "input",
+      "name": "Your pinboard username",
+      "default_value": "user"
     },
     {
       "id": "limit",
