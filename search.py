@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from jq import jq
 import simplejson as json
 import os.path
 import operator
@@ -13,14 +12,17 @@ def search_json_bookmarks(search_value, path_to_pinboard_json):
         with open(path_to_pinboard_json) as json_file:
             json_data = json.load(json_file, encoding='us-ascii')
 
-            json_search_results = jq('.[] | select((.description | contains("' + search_value + '")) '
-            + 'or (.tags | contains("' + search_value + '")) '
-            + 'or (.href | contains("' + search_value + '")) '
-            + 'or (.extended | contains("' + search_value + '"))) '
-            + '| {description: .description, href: .href}').transform(json_data, multiple_output=True)
+            for item in json_data:
+                description = item['description']
+                tags = item['tags']
+                href = item['href']
+                extended = item['extended']
 
-            for bookmark in json_search_results:
-                bookmarks.append(Bookmark(description=bookmark['description'], url=bookmark['href']))
+                if search_value.lower() in description.lower() \
+                        or search_value.lower() in tags.lower() \
+                        or search_value.lower() in href \
+                        or search_value.lower() in extended.lower():
+                    bookmarks.append(Bookmark(description=description, url=href))
 
     return bookmarks
 
@@ -40,9 +42,10 @@ def search_json_tags(search_tags, path_to_pinboard_json):
             json_data = json.load(json_file, encoding='us-ascii')
             tags = search_tags.split('/')
 
-            jq_query = __build_jq_query(tags)
-
-            json_search_results = jq(jq_query).transform(json_data, multiple_output=True)
+            json_search_results = []
+            for bookmark in json_data:
+                if all(tag in bookmark['tags'] for tag in tags):
+                    json_search_results.append(bookmark)
 
             __build_tags_map(json_search_results, tags, tags_map)
             sorted_tags = sorted(tags_map.items(), key=operator.itemgetter(1), reverse = True)
@@ -63,16 +66,3 @@ def __build_tags_map(json_search_results, tags, tags_map):
     for tag in tags:
         if tags_map.has_key(tag):
             del tags_map[tag]
-
-
-def __build_jq_query(tags):
-    jq_start = '.[] | select('
-    jq_contains = '(.tags | contains("%s"))'
-    jq_end = ') | {tags: .tags}'
-    jq_query = jq_start
-    for index in range(len(tags)):
-        jq_query += jq_contains % tags[index]
-        if index < len(tags) - 1:
-            jq_query += ' and '
-    jq_query += jq_end
-    return jq_query

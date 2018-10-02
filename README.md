@@ -44,7 +44,7 @@ If your press Alt-Enter, the search url, selected tag included is opened in the 
 
 ## Requirements
 
-* jq --> sudo pip2 install jq
+* jq no longer required. Simple filtering is way faster!
 * simplejson --> sudo pip2 install simplejson
 
 ## Install
