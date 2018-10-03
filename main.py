@@ -40,8 +40,12 @@ class PinboardSearchExtension(Extension):
                                              on_enter=ExtensionCustomAction(prev_data, keep_app_open=True)))
 
         for bookmark in bookmarks[start_index:start_index + self.limit]:
+            if bookmark.private:
+                icon = 'images/lock.png'
+            else:
+                icon = 'images/icon.png'
             bookmark_data = {'type': 'bookmark', 'url': bookmark.url, 'browser': self.browser}
-            items.append(ExtensionResultItem(icon='images/icon.png',
+            items.append(ExtensionResultItem(icon=icon,
                                              name=bookmark.description.encode('utf8'),
                                              description=bookmark.url,
                                              on_enter=ExtensionCustomAction(bookmark_data)))

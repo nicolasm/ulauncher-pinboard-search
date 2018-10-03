@@ -22,16 +22,17 @@ def search_json_bookmarks(search_value, path_to_pinboard_json):
                         or search_value.lower() in tags.lower() \
                         or search_value.lower() in href \
                         or search_value.lower() in extended.lower():
-                    bookmarks.append(Bookmark(description=description, url=href))
+                    bookmarks.append(Bookmark(description=description, url=href, private=(item['shared'] == 'no')))
 
     return bookmarks
 
 
 class Bookmark:
 
-    def __init__(self, description, url):
+    def __init__(self, description, url, private):
         self.description = description
         self.url = url
+        self.private = private
 
 
 def search_json_tags(search_tags, path_to_pinboard_json):
