@@ -2,9 +2,11 @@
 
 ### [Ulauncher](https://ulauncher.io) extension for searching your [Pinboard.in](https://pinboard.in) bookmarks.
 
-![demo](demo.gif)
+![demo](demo/pb_demo.jpg)
 
-![demo](demo.jpg)
+![demo](demo/pb_alt_enter.jpg)
+
+![demo](demo/pt_demo.jpg)
 
 ## Description
 
@@ -28,19 +30,19 @@ A bookmark is listed when at least one of the following elements contains the se
 All bookmarks are downloaded into a local json file. It is refreshed when Ulaunch starts
 if the existing file is older than 24 hours.
 
-> pt
+Press:
+* Enter to open the selected bookmark in your browser.
+* Alt-Enter to list its tags.
 
-List your most used tags.
+Then select a tag and press:
+* Enter to search bookmarks by tags.
+* Alt-Enter to open the Pinboard.in search url in your browser.
 
-> pt query
+> pt tag1/../tagn
 
-Explore and browse your Pinboard tags.
+List all bookmarks that have the given tags.
 
------
-
-Each time you press Enter the selected tag is added to the search value.
-
-If your press Alt-Enter, the search url, selected tag included is opened in the browser.
+If called without tags, list all bookmarks without tags.
 
 ## Requirements
 

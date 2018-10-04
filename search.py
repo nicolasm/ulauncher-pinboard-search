@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import simplejson as json
 import os.path
-import operator
+
+import simplejson as json
 
 
-def search_json_bookmarks(search_value, path_to_pinboard_json):
+def search_bookmarks(search_value, path_to_pinboard_json):
     bookmarks = []
     if os.path.isfile(path_to_pinboard_json):
         with open(path_to_pinboard_json) as json_file:
@@ -22,48 +22,37 @@ def search_json_bookmarks(search_value, path_to_pinboard_json):
                         or search_value.lower() in tags.lower() \
                         or search_value.lower() in href \
                         or search_value.lower() in extended.lower():
-                    bookmarks.append(Bookmark(description=description, url=href, private=(item['shared'] == 'no')))
+                    bookmarks.append(
+                        Bookmark(description=description,
+                                 url=href,
+                                 private=(item['shared'] == 'no'),
+                                 tags=tags.split(' ')))
 
     return bookmarks
 
 
-class Bookmark:
-
-    def __init__(self, description, url, private):
-        self.description = description
-        self.url = url
-        self.private = private
-
-
-def search_json_tags(search_tags, path_to_pinboard_json):
-    tags_map = dict()
-    sorted_tags = []
+def search_bookmarks_by_tags(search_tags, path_to_pinboard_json):
+    bookmarks = []
     if os.path.isfile(path_to_pinboard_json):
         with open(path_to_pinboard_json) as json_file:
             json_data = json.load(json_file, encoding='us-ascii')
             tags = search_tags.split('/')
 
-            json_search_results = []
             for bookmark in json_data:
-                if all(tag in bookmark['tags'] for tag in tags):
-                    json_search_results.append(bookmark)
+                bookmark_tags = bookmark['tags'].split(' ')
+                if set(tags).issubset(bookmark_tags):
+                    bookmarks.append(
+                        Bookmark(description=bookmark['description'],
+                                 url=bookmark['href'],
+                                 private=(bookmark['shared'] == 'no'),
+                                 tags=bookmark_tags))
+    return bookmarks
 
-            __build_tags_map(json_search_results, tags, tags_map)
-            sorted_tags = sorted(tags_map.items(), key=operator.itemgetter(1), reverse = True)
 
-    return sorted_tags
+class Bookmark:
 
-
-def __build_tags_map(json_search_results, tags, tags_map):
-    for bookmark in json_search_results:
-        bookmark_tags = bookmark['tags'].split(' ')
-
-        for tag in bookmark_tags:
-            if not tags_map.has_key(tag):
-                tags_map[tag] = 1
-            else:
-                tags_map[tag] = tags_map[tag] + 1
-
-    for tag in tags:
-        if tags_map.has_key(tag):
-            del tags_map[tag]
+    def __init__(self, description, url, private, tags):
+        self.description = description
+        self.url = url
+        self.private = private
+        self.tags = tags

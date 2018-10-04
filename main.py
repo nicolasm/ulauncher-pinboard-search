@@ -13,7 +13,11 @@ from ulauncher.api.shared.item.ExtensionResultItem import ExtensionResultItem
 import os
 
 from pinboard import start_async_pinboard_download
-from search import search_json_bookmarks, search_json_tags
+from search import search_bookmarks, search_bookmarks_by_tags
+
+PT_KEYWORD = 'pt_kw'
+
+PB_KEYWORD = 'pb_kw'
 
 PINBOARD_URL = 'https://pinboard.in/u:%s%s'
 
@@ -43,12 +47,14 @@ class PinboardSearchExtension(Extension):
             if bookmark.private:
                 icon = 'images/lock.png'
             else:
-                icon = 'images/icon.png'
+                icon = 'images/bookmark.png'
             bookmark_data = {'type': 'bookmark', 'url': bookmark.url, 'browser': self.browser}
+            tag_data = {'type': 'tags', 'tags': bookmark.tags}
             items.append(ExtensionResultItem(icon=icon,
                                              name=bookmark.description.encode('utf8'),
                                              description=bookmark.url,
-                                             on_enter=ExtensionCustomAction(bookmark_data)))
+                                             on_enter=ExtensionCustomAction(bookmark_data),
+                                             on_alt_enter=ExtensionCustomAction(tag_data, keep_app_open=True)))
 
         next_data = {'type': 'bookmarks', 'start': start_index + self.limit}
         if start_index + self.limit < bookmarks.__len__():
@@ -57,27 +63,20 @@ class PinboardSearchExtension(Extension):
                                              on_enter=ExtensionCustomAction(next_data, keep_app_open=True)))
         return items
 
-    def build_tag_items(self, event, search_value, tags):
+    def build_tag_items(self, tags, user_keyword):
         items = []
-
-        user_keyword = event.get_keyword()
-        for tag in tags[:self.limit]:
-            if search_value == '':
-                query = tag[0]
-            else:
-                query = search_value + '/' + tag[0]
-
-            data = {'type': 'tags', 'query': query}
-            items.append(ExtensionResultItem(icon='images/icon.png',
-                                             name=tag[0].encode('utf8'),
-                                             description=str(tag[1]),
-                                             on_enter=SetUserQueryAction('%s %s' % (user_keyword, query)),
+        for tag in tags:
+            data = {'type': 'pinboard', 'tags': [tag], 'browser': self.browser}
+            items.append(ExtensionResultItem(icon='images/tag.png',
+                                             name=tag.encode('utf8'),
+                                             on_enter=SetUserQueryAction('%s %s' % (user_keyword, tag)),
                                              on_alt_enter=ExtensionCustomAction(data)))
-        if len(tags) == 0:
-            data = {'type': 'tags', 'query': search_value}
-            items.append(ExtensionResultItem(icon='images/icon.png',
-                                             name='Open link'.encode('utf8'),
-                                             on_enter=ExtensionCustomAction(data)))
+        if items:
+            data = {'type': 'pinboard', 'tags': tags, 'browser': self.browser}
+            items.append(ExtensionResultItem(icon='images/tag.png',
+                                             name='#all',
+                                             on_enter=SetUserQueryAction('%s %s' % (user_keyword, '/'.join(tags))),
+                                             on_alt_enter=ExtensionCustomAction(data)))
         return items
 
 
@@ -85,22 +84,25 @@ class KeywordQueryEventListener(EventListener):
 
     def on_event(self, event, extension):
         search_value = event.get_argument()
-        if search_value == None:
+        if search_value is None:
             search_value = ''
 
         keyword_id = get_keyword_id(event, extension.preferences)
 
         items = []
 
-        if keyword_id == 'pb_kw':
-            bookmarks = search_json_bookmarks(search_value, extension.json_bookmark_file)
+        if keyword_id == PB_KEYWORD:
+            bookmarks = search_bookmarks(search_value, extension.json_bookmark_file)
 
             if bookmarks:
                 extension.bookmarks = bookmarks
                 items = extension.build_bookmark_items(bookmarks, 0)
-        elif keyword_id == 'pt_kw':
-            tags = search_json_tags(search_value, extension.json_bookmark_file)
-            items = extension.build_tag_items(event, search_value, tags)
+        elif keyword_id == PT_KEYWORD:
+            bookmarks = search_bookmarks_by_tags(search_value, extension.json_bookmark_file)
+
+            if bookmarks:
+                extension.bookmarks = bookmarks
+                items = extension.build_bookmark_items(bookmarks, 0)
 
         return RenderResultListAction(items)
 
@@ -111,33 +113,41 @@ def get_keyword_id(event, preferences):
         if preferences[key] == keyword:
             return key
 
+
 class ItemEnterEventListener(EventListener):
 
     def on_event(self, event, extension):
         data = event.get_data()
+        user_keyword = extension.preferences[PT_KEYWORD]
 
         if data['type'] == 'bookmark':
             extension.bookmarks = []
-            if data['browser'] == 'default':
-                webbrowser.open_new_tab(data['url'])
-            else:
-                webbrowser.get(data['browser']).open_new_tab(data['url'])
+
+            ItemEnterEventListener.open_url_in_browser(data, data['url'])
         elif data['type'] == 'bookmarks':
             start_index = data['start']
             items = extension.build_bookmark_items(extension.bookmarks, start_index)
             return RenderResultListAction(items)
         elif data['type'] == 'tags':
-            tags = data['query'].split('/')
-            tag_filters = ''
-            for tag in tags:
-                tag_filters += '/t:%s' % tag
+            extension.bookmarks = []
 
-            url = PINBOARD_URL % (extension.username, tag_filters)
-            browser = extension.browser
-            if browser == 'default':
-                webbrowser.open_new_tab(url)
-            else:
-                webbrowser.get(browser).open_new_tab(url)
+            tags = data['tags']
+            items = extension.build_tag_items(tags, user_keyword)
+            return RenderResultListAction(items)
+        elif data['type'] == 'pinboard':
+            extension.bookmarks = []
+            tags = data['tags']
+
+            url = PINBOARD_URL % (extension.username, '/t:' + '/t:'.join(tags))
+
+            ItemEnterEventListener.open_url_in_browser(data, url)
+
+    @staticmethod
+    def open_url_in_browser(data, url):
+        if data['browser'] == 'default':
+            webbrowser.open_new_tab(url)
+        else:
+            webbrowser.get(data['browser']).open_new_tab(url)
 
 
 class PreferencesEventListener(EventListener):
