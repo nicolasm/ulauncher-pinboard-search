@@ -12,20 +12,21 @@ def search_bookmarks(search_value, path_to_pinboard_json):
         with open(path_to_pinboard_json) as json_file:
             json_data = json.load(json_file, encoding='us-ascii')
 
-            for item in json_data:
-                description = item['description']
-                tags = item['tags']
-                href = item['href']
-                extended = item['extended']
+            for bookmark in json_data:
+                description = bookmark['description']
+                tags = bookmark['tags']
+                href = bookmark['href']
+                extended = bookmark['extended']
 
+                bookmark_tags = tags.lower().split(' ')
                 if search_value.lower() in description.lower() \
-                        or search_value.lower() in tags.lower() \
+                        or set(search_value.lower()).issubset(bookmark_tags) \
                         or search_value.lower() in href \
                         or search_value.lower() in extended.lower():
                     bookmarks.append(
                         Bookmark(description=description,
                                  url=href,
-                                 private=(item['shared'] == 'no'),
+                                 private=(bookmark['shared'] == 'no'),
                                  tags=tags.split(' ')))
 
     return bookmarks
