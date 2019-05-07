@@ -20,7 +20,7 @@ def search_bookmarks(search_value, path_to_pinboard_json):
 
                 bookmark_tags = tags.lower().split(' ')
                 if search_value.lower() in description.lower() \
-                        or set(search_value.lower()).issubset(bookmark_tags) \
+                        or {search_value.lower()}.issubset(set(bookmark_tags)) \
                         or search_value.lower() in href \
                         or search_value.lower() in extended.lower():
                     bookmarks.append(
