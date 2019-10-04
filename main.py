@@ -51,7 +51,7 @@ class PinboardSearchExtension(Extension):
             bookmark_data = {'type': 'bookmark', 'url': bookmark.url, 'browser': self.browser}
             tag_data = {'type': 'tags', 'tags': bookmark.tags}
             items.append(ExtensionResultItem(icon=icon,
-                                             name=bookmark.description.encode('utf8'),
+                                             name=bookmark.description,
                                              description=bookmark.url,
                                              on_enter=ExtensionCustomAction(bookmark_data),
                                              on_alt_enter=ExtensionCustomAction(tag_data, keep_app_open=True)))
@@ -68,7 +68,7 @@ class PinboardSearchExtension(Extension):
         for tag in tags:
             data = {'type': 'pinboard', 'tags': [tag], 'browser': self.browser}
             items.append(ExtensionResultItem(icon='images/tag.png',
-                                             name=tag.encode('utf8'),
+                                             name=tag,
                                              on_enter=SetUserQueryAction('%s %s' % (user_keyword, tag)),
                                              on_alt_enter=ExtensionCustomAction(data)))
         if items:
