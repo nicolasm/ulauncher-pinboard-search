@@ -155,7 +155,7 @@ class PreferencesEventListener(EventListener):
     def on_event(self,event,extension):
         try:
             n = int(event.preferences['limit'])
-        except:
+        except ValueError:
             n = 10
 
         json_bookmark_file = event.preferences['pinboard_bookmark_file']
