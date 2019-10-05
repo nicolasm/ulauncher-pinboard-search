@@ -47,7 +47,7 @@ If called without tags, list all bookmarks without tags.
 ## Requirements
 
 * jq no longer required. Simple filtering is way faster!
-* simplejson --> sudo pip2 install simplejson
+* simplejson
 
 ## Install
 
